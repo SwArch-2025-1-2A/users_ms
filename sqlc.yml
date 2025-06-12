@@ -1,0 +1,28 @@
+version: "2"
+sql:
+  - engine: postgresql
+    schema: ./db/migrations
+    queries: ./db/queries
+    gen:
+      go:
+        package: "repository"
+        out: "repository"
+        sql_package: "pgx/v5"
+        overrides:
+          - db_type: uuid
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
+rules:
+  - name: no-pg
+    message: "invalid engine: postgresql"
+    rule: |
+      config.engine == "postgresql"
+  - name: no-delete
+    message: "don't use delete statements"
+    rule: |
+      query.sql.contains("DELETE")
+  - name: no-exec
+    message: "don't use exec"
+    rule: |
+      query.cmd == "exec"

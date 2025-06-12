@@ -1,0 +1,51 @@
+services:
+  mu_users_ms:
+    build:
+      context: .
+      args:
+        MODE: ${mu_users_ms_MODE:-release}
+
+    container_name: ${mu_users_ms_HOSTNAME:-mu_users_ms}
+
+    hostname: ${mu_users_ms_HOSTNAME:-mu_users_ms}
+
+    # Ports exposed to OTHER SERVICES but NOT the HOST machine
+    expose:
+      - ${mu_users_ms_INTERNAL_PORT:-8008}
+
+    environment:
+      # `DATABASE_URL` is constructed from the `mu_users_db` variables, like this:
+      #   postgresql://{user}:{password}@{hostname}:{port}/{db}?sslmode=disable
+      DATABASE_URL: postgresql://${mu_users_db_USER:-postgres}:${mu_users_db_PASSWORD:-meetUN}@${mu_users_db_HOSTNAME:-mu_users_db}:${mu_users_db_INTERNAL_PORT:-5432}/${mu_users_db_DB:-users}?sslmode=disable
+      PORT: ${mu_users_ms_INTERNAL_PORT:-8008}
+      LOCALHOST: ${mu_users_ms_HOSTNAME:-mu_users_ms}
+
+    depends_on:
+      - mu_users_db
+
+    ports:
+      - ${mu_users_ms_EXPOSED_PORT:-8008}:${mu_users_ms_INTERNAL_PORT:-8008}
+
+  mu_users_db:
+    image: postgres:17-alpine
+
+    # Hostname for which the service will be reachable
+    hostname: ${mu_users_db_HOSTNAME:-mu_users_db}
+
+    # Ports exposed to OTHER SERVICES but NOT the HOST machine
+    expose:
+      - ${mu_users_db_INTERNAL_PORT:-5432}
+
+    restart: always
+    environment:
+      POSTGRES_USER: ${mu_users_db_USER:-postgres}
+      POSTGRES_PASSWORD: ${mu_users_db_PASSWORD:-meetUN}
+      POSTGRES_DB: ${mu_users_db_DB:-users}
+      PGPORT: ${mu_users_db_INTERNAL_PORT:-5432}
+    volumes:
+      - mu-users-db-data:/var/lib/postgresql/data
+
+    command: ["postgres", "-c", "max_prepared_transactions=100", "-c", "max_connections=200"]
+
+volumes:
+  mu-users-db-data:
