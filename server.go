@@ -11,7 +11,7 @@ func main() {
 
 	router.GET("/ping", pingHandler)
 
-	router.Run("localhost:8008")
+	router.Run()
 }
 
 func pingHandler(c *gin.Context) {

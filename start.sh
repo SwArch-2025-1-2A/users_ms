@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 set -euo pipefail # strict mode
 
 # Check if the DATABASE_URL environment variable is set
