@@ -13,6 +13,13 @@ RUN go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate
 # Install sqlc
 RUN go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
 
+# We install netcat to be able to check the connection to the database
+RUN apk add --no-cache netcat-openbsd
+
+# Copy the script that checks the connection to the database
+COPY wait_for_db.sh .
+RUN chmod +x wait_for_db.sh
+
 # Copy start script and make it executable
 COPY start.sh .
 RUN chmod +x start.sh

@@ -19,6 +19,8 @@ services:
       DATABASE_URL: postgresql://${mu_users_db_USER:-postgres}:${mu_users_db_PASSWORD:-meetUN}@${mu_users_db_HOSTNAME:-mu_users_db}:${mu_users_db_INTERNAL_PORT:-5432}/${mu_users_db_DB:-users}?sslmode=disable
       PORT: ${mu_users_ms_INTERNAL_PORT:-8008}
       LOCALHOST: ${mu_users_ms_HOSTNAME:-mu_users_ms}
+      DB_PORT: ${mu_users_db_INTERNAL_PORT:-5432}
+      DB_HOST: ${mu_users_db_HOSTNAME:-mu_users_db}
 
     depends_on:
       - mu_users_db

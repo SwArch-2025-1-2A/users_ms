@@ -7,9 +7,11 @@ if [ -z "${DATABASE_URL}" ]; then
 	exit 1
 fi
 
-# Wait for the database to be ready
-echo "Waiting for the database to be ready..."
-sleep 10
+./wait_for_db.sh
+if [ $? -ne 0 ]; then
+	echo "Error connecting to the database"
+	exit 1
+fi
 
 # Run database migrations
 echo "Running migrations..."
