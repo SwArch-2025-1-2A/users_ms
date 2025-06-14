@@ -9,7 +9,6 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createCategory = `-- name: CreateCategory :one
@@ -18,7 +17,7 @@ VALUES ($1)
 RETURNING id, category, created_at, updated_at, deleted_at
 `
 
-func (q *Queries) CreateCategory(ctx context.Context, category pgtype.Text) (Category, error) {
+func (q *Queries) CreateCategory(ctx context.Context, category string) (Category, error) {
 	row := q.db.QueryRow(ctx, createCategory, category)
 	var i Category
 	err := row.Scan(

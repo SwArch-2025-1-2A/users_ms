@@ -9,14 +9,13 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const changeUserName = `-- name: ChangeUserName :one
 UPDATE "User"
 SET "name" = $2
 WHERE "id" = $1
-RETURNING id, name, profile_pic
+RETURNING id, name, "profilePic"
 `
 
 type ChangeUserNameParams struct {
@@ -33,14 +32,14 @@ func (q *Queries) ChangeUserName(ctx context.Context, arg ChangeUserNameParams) 
 
 const changeUserProfilePic = `-- name: ChangeUserProfilePic :one
 UPDATE "User"
-SET "profile_pic" = $2
+SET "profilePic" = $2
 WHERE "id" = $1
-RETURNING id, name, profile_pic
+RETURNING id, name, "profilePic"
 `
 
 type ChangeUserProfilePicParams struct {
 	ID         uuid.UUID
-	ProfilePic pgtype.Text
+	ProfilePic []byte
 }
 
 func (q *Queries) ChangeUserProfilePic(ctx context.Context, arg ChangeUserProfilePicParams) (User, error) {
@@ -53,15 +52,15 @@ func (q *Queries) ChangeUserProfilePic(ctx context.Context, arg ChangeUserProfil
 const changeUserProperties = `-- name: ChangeUserProperties :one
 UPDATE "User"
 SET "name" = $2,
-    "profile_pic" = $3
+    "profilePic" = $3
 WHERE "id" = $1
-RETURNING id, name, profile_pic
+RETURNING id, name, "profilePic"
 `
 
 type ChangeUserPropertiesParams struct {
 	ID         uuid.UUID
 	Name       string
-	ProfilePic pgtype.Text
+	ProfilePic []byte
 }
 
 func (q *Queries) ChangeUserProperties(ctx context.Context, arg ChangeUserPropertiesParams) (User, error) {
@@ -72,15 +71,15 @@ func (q *Queries) ChangeUserProperties(ctx context.Context, arg ChangeUserProper
 }
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO "User" ("id", "name", "profile_pic")
+INSERT INTO "User" ("id", "name", "profilePic")
 VALUES ($1, $2, $3)
-RETURNING id, name, profile_pic
+RETURNING id, name, "profilePic"
 `
 
 type CreateUserParams struct {
 	ID         uuid.UUID
 	Name       string
-	ProfilePic pgtype.Text
+	ProfilePic []byte
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -91,7 +90,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 }
 
 const getUserById = `-- name: GetUserById :one
-SELECT id, name, profile_pic
+SELECT id, name, "profilePic"
 FROM "User"
 WHERE "id" = $1
 `

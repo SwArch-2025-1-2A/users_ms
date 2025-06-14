@@ -5,7 +5,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE "User" (
   "id" uuid PRIMARY KEY,
   "name" varchar NOT NULL,
-  "profilePic" BYTEA USING decode("profilePic", "escape")
+  "profilePic" BYTEA
 );
 
 CREATE TABLE "UserInterests" (

@@ -11,7 +11,7 @@ import (
 
 type Category struct {
 	ID        uuid.UUID
-	Category  pgtype.Text
+	Category  string
 	CreatedAt pgtype.Timestamp
 	UpdatedAt pgtype.Timestamp
 	DeletedAt pgtype.Timestamp
@@ -20,7 +20,7 @@ type Category struct {
 type User struct {
 	ID         uuid.UUID
 	Name       string
-	ProfilePic pgtype.Text
+	ProfilePic []byte
 }
 
 type UserInterest struct {

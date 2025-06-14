@@ -4,14 +4,14 @@ FROM "User"
 WHERE "id" = $1;
 
 -- name: CreateUser :one
-INSERT INTO "User" ("id", "name", "profile_pic")
+INSERT INTO "User" ("id", "name", "profilePic")
 VALUES ($1, $2, $3)
 RETURNING *;
 
 -- name: ChangeUserProperties :one
 UPDATE "User"
 SET "name" = $2,
-    "profile_pic" = $3
+    "profilePic" = $3
 WHERE "id" = $1
 RETURNING *;
 
@@ -23,6 +23,6 @@ RETURNING *;
 
 -- name: ChangeUserProfilePic :one
 UPDATE "User"
-SET "profile_pic" = $2
+SET "profilePic" = $2
 WHERE "id" = $1
 RETURNING *;
