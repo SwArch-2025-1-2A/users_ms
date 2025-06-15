@@ -92,10 +92,8 @@ func GetUserHandler(c *gin.Context) {
 		return
 	}
 
-	idStr := c.Param("id")
-	id, err := uuid.Parse(idStr)
-	if err != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": "The given id is not a valid UUID"})
+	id, ok := ReadIdParam(c)
+	if !ok {
 		return
 	}
 
@@ -105,6 +103,51 @@ func GetUserHandler(c *gin.Context) {
 		return
 	} else if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": "Error when trying to retrieve the user from the DB"})
+		log.Println(err.Error())
+		return
+	}
+
+	response := UserResponse{
+		ID:            user.ID,
+		Name:          user.Name,
+		ProfilePicUrl: GenerateImageURL(user.ID),
+	}
+
+	c.IndentedJSON(http.StatusOK, gin.H{"status": "success", "data": response})
+}
+
+type ChangeUsernameRequestBody struct {
+	Name string `json:"name"`
+}
+
+func ChangeUserName(c *gin.Context) {
+	app, ok := GetApp(c)
+	// The error response and logging is already done by the GetApp function, so we don't need to do it here
+	if !ok {
+		return
+	}
+
+	id, ok := ReadIdParam(c)
+	if !ok {
+		return
+	}
+
+	var requestBody ChangeUsernameRequestBody
+	if err := c.BindJSON(&requestBody); err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": "You have to provide a name (and only a name) in the request body"})
+		// I am not sure that a bad request is the only reason why this error might happen, so I want to log them to check
+		log.Println(err.Error())
+		return
+	}
+
+	args := repository.ChangeUserNameParams{
+		ID:   id,
+		Name: requestBody.Name,
+	}
+	user, err := app.Queries.ChangeUserName(app.Context, args)
+	if err != nil {
+		// I have no easy way to know what went wrong, so I assume an internal server error
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": "Error when trying to update the username"})
 		log.Println(err.Error())
 		return
 	}

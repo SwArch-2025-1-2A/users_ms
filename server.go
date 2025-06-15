@@ -27,6 +27,7 @@ func main() {
 		{
 			users.POST("", handlers.CreateUserHandler)
 			users.GET("/:id", handlers.GetUserHandler)
+			users.PUT("/:id", handlers.ChangeUserName)
 		}
 	}
 

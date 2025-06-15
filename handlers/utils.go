@@ -34,3 +34,14 @@ func GenerateImageURL(id uuid.UUID) string {
 	hostname := os.Getenv("LOCALHOST")
 	return "http://" + hostname + ":" + port + "/api/images/" + id.String()
 }
+
+func ReadIdParam(c *gin.Context) (id uuid.UUID, ok bool) {
+	idStr := c.Param("id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": "The given id is not a valid UUID"})
+		return id, false
+	}
+
+	return id, true
+}
