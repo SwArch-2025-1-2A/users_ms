@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"database/sql"
 	"io"
 	"log"
 	"net/http"
@@ -19,6 +20,7 @@ type UserResponse struct {
 
 func CreateUserHandler(c *gin.Context) {
 	app, ok := GetApp(c)
+	// The error response and logging is already done by the GetApp function, so we don't need to do it here
 	if !ok {
 		return
 	}
@@ -81,4 +83,37 @@ func CreateUserHandler(c *gin.Context) {
 	}
 
 	c.IndentedJSON(http.StatusCreated, gin.H{"status": "success", "data": userResponse})
+}
+
+func GetUserHandler(c *gin.Context) {
+	app, ok := GetApp(c)
+	// The error response and logging is already done by the GetApp function, so we don't need to do it here
+	if !ok {
+		return
+	}
+
+	idStr := c.Param("id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": "The given id is not a valid UUID"})
+		return
+	}
+
+	user, err := app.Queries.GetUserById(app.Context, id)
+	if err == sql.ErrNoRows {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"error": "No user with that id in the database"})
+		return
+	} else if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": "Error when trying to retrieve the user from the DB"})
+		log.Println(err.Error())
+		return
+	}
+
+	response := UserResponse{
+		ID:            user.ID,
+		Name:          user.Name,
+		ProfilePicUrl: GenerateImageURL(user.ID),
+	}
+
+	c.IndentedJSON(http.StatusOK, gin.H{"status": "success", "data": response})
 }

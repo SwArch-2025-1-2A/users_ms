@@ -26,6 +26,7 @@ func main() {
 		users := api.Group("/users")
 		{
 			users.POST("", handlers.CreateUserHandler)
+			users.GET("/:id", handlers.GetUserHandler)
 		}
 	}
 
