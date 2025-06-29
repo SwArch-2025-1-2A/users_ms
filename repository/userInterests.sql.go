@@ -29,41 +29,6 @@ func (q *Queries) AddUserInterest(ctx context.Context, arg AddUserInterestParams
 	return i, err
 }
 
-const getUserInterests = `-- name: GetUserInterests :many
-SELECT c.id, c.category, c.created_at, c.updated_at, c.deleted_at
-FROM "UserInterests" as ui
-  JOIN "Category" as c
-  ON ui.interest_id = c.id
-WHERE ui.user_id = $1
-  AND c.deleted_at IS NULL
-`
-
-func (q *Queries) GetUserInterests(ctx context.Context, userID uuid.UUID) ([]Category, error) {
-	rows, err := q.db.Query(ctx, getUserInterests, userID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Category
-	for rows.Next() {
-		var i Category
-		if err := rows.Scan(
-			&i.ID,
-			&i.Category,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-			&i.DeletedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const removeUserInterest = `-- name: RemoveUserInterest :exec
 DELETE FROM "UserInterests"
 WHERE "user_id" = $1

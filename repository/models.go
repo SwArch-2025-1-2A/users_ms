@@ -6,16 +6,7 @@ package repository
 
 import (
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
 )
-
-type Category struct {
-	ID        uuid.UUID
-	Category  string
-	CreatedAt pgtype.Timestamp
-	UpdatedAt pgtype.Timestamp
-	DeletedAt pgtype.Timestamp
-}
 
 type User struct {
 	ID         uuid.UUID
