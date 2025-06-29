@@ -6,6 +6,3 @@ DROP EXTENSION IF EXISTS "uuid-ossp";
 -- participant) belong to the groups microservice
 DROP TABLE IF EXISTS "User";
 DROP TABLE IF EXISTS "UserInterests";
--- I had to add this table to this microservice because UserInterests references it
--- Sadly, this means it is duplicated and is present both in users_ms and groups_ms
-DROP TABLE IF EXISTS "Category"
