@@ -26,13 +26,15 @@ services:
       - mu_users_db
 
     ports:
-      - ${mu_users_ms_EXPOSED_PORT:-8008}:${mu_users_ms_INTERNAL_PORT:-8008}
+      - ${mu_users_ms_EXTERNAL_PORT:-8008}:${mu_users_ms_INTERNAL_PORT:-8008}
 
   mu_users_db:
     image: postgres:17-alpine
 
     # Hostname for which the service will be reachable
     hostname: ${mu_users_db_HOSTNAME:-mu_users_db}
+
+    container_name: ${mu_users_db_HOSTNAME:-mu_users_db}
 
     # Ports exposed to OTHER SERVICES but NOT the HOST machine
     expose:
