@@ -1,5 +1,10 @@
 services:
-  mu_users_ms:
+#--------------------------------------------------------------------------------------------------------------------------#
+#|                                                PROFILES FOR PRODUCTION                                                 |#
+#--------------------------------------------------------------------------------------------------------------------------#
+  # &common_ms is what's called an anchor in .yaml files. It lets us reuse everything that follows, so that setting up
+  # the profile for the dev microservice is easier
+  mu_users_ms_prod: &common_users_ms
     build:
       context: .
       args:
@@ -23,12 +28,15 @@ services:
       DB_HOST: ${mu_users_db_HOSTNAME:-mu_users_db}
 
     depends_on:
-      - mu_users_db
+      - mu_users_db_prod
 
-    ports:
-      - ${mu_users_ms_EXTERNAL_PORT:-8008}:${mu_users_ms_INTERNAL_PORT:-8008}
+    profiles:
+      - prod
 
-  mu_users_db:
+    networks:
+      - private
+
+  mu_users_db_prod: &common_users_db
     image: postgres:17-alpine
 
     # Hostname for which the service will be reachable
@@ -49,7 +57,43 @@ services:
     volumes:
       - mu-users-db-data:/var/lib/postgresql/data
 
+    profiles:
+      - prod
+
+    networks:
+      - private
+
     command: ["postgres", "-c", "max_prepared_transactions=100", "-c", "max_connections=200"]
+
+#--------------------------------------------------------------------------------------------------------------------------#
+#|                                                PROFILES FOR DEVELOPMENT                                                |#
+#--------------------------------------------------------------------------------------------------------------------------#
+  # Users microservice for development (connected to the default network and exposing its ports to the host)
+  mu_users_ms_dev:
+    # This is what in yaml files is called an alias and a merge. It takes everything pointed to by common_users_ms and merges it
+    # so that we don't have to rewrite it. We can add or override things too
+    <<: *common_users_ms
+
+    profiles:
+      - dev
+    
+    depends_on:
+      - mu_users_db_dev
+
+    ports:
+      - ${mu_users_ms_EXTERNAL_PORT:-8008}:${mu_users_ms_INTERNAL_PORT:-8008}
+
+    networks:
+      - default
+
+  mu_users_db_dev:
+    <<: *common_users_db
+
+    profiles:
+      - dev
+    
+    networks:
+      - default
 
 volumes:
   mu-users-db-data:
