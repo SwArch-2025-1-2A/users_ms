@@ -1,69 +1,69 @@
+#--------------------------------------------------------------------------------------------------------------------------#
+#|                                                COMMON CONFIGURATIONS                                                   |#
+#--------------------------------------------------------------------------------------------------------------------------#
+# &mu-users-ms-common-config is what's called an anchor in .yaml files. It lets us reuse everything that follows, so that 
+# setting up the dev and prod profiles is easier
+x-mu-users-ms-common-config: &mu-users-ms-common-config
+  build:
+    context: .
+    args:
+      MODE: ${mu_users_ms_MODE:-release}
+
+  # Hostname for which the service will be reachable
+  hostname: ${mu_users_ms_HOSTNAME:-mu_users_ms}
+  container_name: ${mu_users_ms_HOSTNAME:-mu_users_ms}
+  
+  # Ports exposed to OTHER SERVICES but NOT the HOST machine
+  expose:
+    - ${mu_users_ms_INTERNAL_PORT:-8008}
+
+  environment:
+    # `DATABASE_URL` is constructed from the `mu_users_db` variables, like this:
+    #   postgresql://{user}:{password}@{hostname}:{port}/{db}?sslmode=disable
+    DATABASE_URL: postgresql://${mu_users_db_USER:-postgres}:${mu_users_db_PASSWORD:-meetUN}@${mu_users_db_HOSTNAME:-mu_users_db}:${mu_users_db_INTERNAL_PORT:-5432}/${mu_users_db_DB:-users}?sslmode=disable
+    PORT: ${mu_users_ms_INTERNAL_PORT:-8008}
+    LOCALHOST: ${mu_users_ms_HOSTNAME:-mu_users_ms}
+    DB_PORT: ${mu_users_db_INTERNAL_PORT:-5432}
+    DB_HOST: ${mu_users_db_HOSTNAME:-mu_users_db}
+
+
+x-mu-users-db-common-config: &mu-users-db-common-config
+  image: postgres:17-alpine
+
+  # Hostname for which the service will be reachable
+  hostname: ${mu_users_db_HOSTNAME:-mu_users_db}
+  container_name: ${mu_users_db_HOSTNAME:-mu_users_db}
+
+  # Ports exposed to OTHER SERVICES but NOT the HOST machine
+  expose:
+    - ${mu_users_db_INTERNAL_PORT:-5432}
+
+  restart: always
+  environment:
+    POSTGRES_USER: ${mu_users_db_USER:-postgres}
+    POSTGRES_PASSWORD: ${mu_users_db_PASSWORD:-meetUN}
+    POSTGRES_DB: ${mu_users_db_DB:-users}
+    PGPORT: ${mu_users_db_INTERNAL_PORT:-5432}
+  volumes:
+    - mu-users-db-data:/var/lib/postgresql/data
+
+  command: ["postgres", "-c", "max_prepared_transactions=100", "-c", "max_connections=200"]
+
 services:
 #--------------------------------------------------------------------------------------------------------------------------#
 #|                                                PROFILES FOR PRODUCTION                                                 |#
-#--------------------------------------------------------------------------------------------------------------------------#
-  # &common_ms is what's called an anchor in .yaml files. It lets us reuse everything that follows, so that setting up
-  # the profile for the dev microservice is easier
-  mu_users_ms_prod: &common_users_ms
-    build:
-      context: .
-      args:
-        MODE: ${mu_users_ms_MODE:-release}
-
-    container_name: ${mu_users_ms_HOSTNAME:-mu_users_ms}
-
-    hostname: ${mu_users_ms_HOSTNAME:-mu_users_ms}
-
-    # Ports exposed to OTHER SERVICES but NOT the HOST machine
-    expose:
-      - ${mu_users_ms_INTERNAL_PORT:-8008}
-
-    environment:
-      # `DATABASE_URL` is constructed from the `mu_users_db` variables, like this:
-      #   postgresql://{user}:{password}@{hostname}:{port}/{db}?sslmode=disable
-      DATABASE_URL: postgresql://${mu_users_db_USER:-postgres}:${mu_users_db_PASSWORD:-meetUN}@${mu_users_db_HOSTNAME:-mu_users_db}:${mu_users_db_INTERNAL_PORT:-5432}/${mu_users_db_DB:-users}?sslmode=disable
-      PORT: ${mu_users_ms_INTERNAL_PORT:-8008}
-      LOCALHOST: ${mu_users_ms_HOSTNAME:-mu_users_ms}
-      DB_PORT: ${mu_users_db_INTERNAL_PORT:-5432}
-      DB_HOST: ${mu_users_db_HOSTNAME:-mu_users_db}
-
+#--------------------------------------------------------------------------------------------------------------------------#  
+  mu_users_ms_prod: 
+    <<: *mu-users-ms-common-config
     depends_on:
       - mu_users_db_prod
-
     profiles:
       - prod
 
-    networks:
-      - private
-
-  mu_users_db_prod: &common_users_db
-    image: postgres:17-alpine
-
-    # Hostname for which the service will be reachable
-    hostname: ${mu_users_db_HOSTNAME:-mu_users_db}
-
-    container_name: ${mu_users_db_HOSTNAME:-mu_users_db}
-
-    # Ports exposed to OTHER SERVICES but NOT the HOST machine
-    expose:
-      - ${mu_users_db_INTERNAL_PORT:-5432}
-
-    restart: always
-    environment:
-      POSTGRES_USER: ${mu_users_db_USER:-postgres}
-      POSTGRES_PASSWORD: ${mu_users_db_PASSWORD:-meetUN}
-      POSTGRES_DB: ${mu_users_db_DB:-users}
-      PGPORT: ${mu_users_db_INTERNAL_PORT:-5432}
-    volumes:
-      - mu-users-db-data:/var/lib/postgresql/data
-
+  mu_users_db_prod: 
+    <<: *mu-users-db-common-config
     profiles:
       - prod
-
-    networks:
-      - private
-
-    command: ["postgres", "-c", "max_prepared_transactions=100", "-c", "max_connections=200"]
 
 #--------------------------------------------------------------------------------------------------------------------------#
 #|                                                PROFILES FOR DEVELOPMENT                                                |#
@@ -72,28 +72,23 @@ services:
   mu_users_ms_dev:
     # This is what in yaml files is called an alias and a merge. It takes everything pointed to by common_users_ms and merges it
     # so that we don't have to rewrite it. We can add or override things too
-    <<: *common_users_ms
-
+    <<: *mu-users-ms-common-config
     profiles:
       - dev
-    
     depends_on:
       - mu_users_db_dev
-
     ports:
       - ${mu_users_ms_EXTERNAL_PORT:-8008}:${mu_users_ms_INTERNAL_PORT:-8008}
-
     networks:
       - default
 
   mu_users_db_dev:
-    <<: *common_users_db
-
+    <<: *mu-users-db-common-config
     profiles:
       - dev
-    
     networks:
       - default
+
 
 volumes:
   mu-users-db-data:
